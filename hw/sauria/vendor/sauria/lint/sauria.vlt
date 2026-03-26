@@ -1,0 +1,13 @@
+// Copyright 2022 EPFL
+// Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+`verilator_config
+
+lint_off -rule EOFNEWLINE -file "*bsc_loca_sauria/RTL/src/sauria_pkg.sv"
+lint_off -rule EOFNEWLINE -file "*bsc_loca_sauria/RTL/src/sauria_addr_pkg.sv"
+lint_off -rule EOFNEWLINE -file "*bsc_loca_sauria/RTL/src/common/cdc_sync_reg.sv"
+lint_off -rule EOFNEWLINE -file "*bsc_loca_sauria/wrapper/reg_to_axi_lite.sv"
+lint_off -rule EOFNEWLINE -file "*bsc_loca_sauria/wrapper/sauria_core_wrapper.sv"
+
+

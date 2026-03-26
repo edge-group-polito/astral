@@ -1,0 +1,88 @@
+# Copyright 2025 PoliTo
+# Solderpad Hardware License, Version 2.1, see LICENSE.md for details.
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+
+package:
+  name: sauria
+
+dependencies:
+  register_interface: { git: https://github.com/pulp-platform/register_interface.git,   version: 0.4.3                                }
+  axi:                { git: https://github.com/pulp-platform/axi.git,                  version: 0.39.6                               }
+  common_cells:       { git: https://github.com/pulp-platform/common_cells.git,         version: 1.37.0                               } # branch: master
+
+
+sources:
+  - hw/axi_intfc_bridge.sv
+  - hw/axi_lite_intfc_bridge.sv
+  - vendor/sauria/RTL/src/sauria_addr_pkg.sv
+  - vendor/sauria/RTL/src/sauria_pkg.sv
+  - vendor/sauria/RTL/src/axi/axi_lite_2ram.sv
+  - vendor/sauria/RTL/src/axi/axi_full_2ram.sv
+  - vendor/sauria/RTL/src/axi/axi_mem_slave.sv
+  - vendor/sauria/RTL/src/axi/axi_lite_err_slv_intf.sv
+  - vendor/sauria/RTL/src/common/cdc_sync_reg.sv
+  - vendor/sauria/RTL/src/common/cnt_dualctx.sv
+  - vendor/sauria/RTL/src/common/fifo_memory_ff.sv
+  - vendor/sauria/RTL/src/common/cnt_generic.sv
+  - vendor/sauria/RTL/src/sauria_core/config/config_regs.sv
+  - vendor/sauria/RTL/src/sauria_core/control/context_switch_controller.sv
+  - vendor/sauria/RTL/src/sauria_core/control/context_fsm.sv
+  - vendor/sauria/RTL/src/sauria_core/control/feeders_fsm.sv
+  - vendor/sauria/RTL/src/sauria_core/control/main_controller.sv
+  - vendor/sauria/RTL/src/sauria_core/data_feeder/feed_data_manager.sv
+  - vendor/sauria/RTL/src/sauria_core/data_feeder/feed_xy_lane.sv
+  - vendor/sauria/RTL/src/sauria_core/data_feeder/wei_feeder.sv
+  - vendor/sauria/RTL/src/sauria_core/data_feeder/feed_registers.sv
+  - vendor/sauria/RTL/src/sauria_core/data_feeder/ifmap_feeder.sv
+  - vendor/sauria/RTL/src/sauria_core/data_feeder/wei_idxcnt.sv
+  - vendor/sauria/RTL/src/sauria_core/data_feeder/ifmap_idxcnt.sv
+  - vendor/sauria/RTL/src/sauria_core/psm/psm_wdata_manager.sv
+  - vendor/sauria/RTL/src/sauria_core/psm/psm_idxcnt.sv
+  - vendor/sauria/RTL/src/sauria_core/psm/psm_rdata_manager.sv
+  - vendor/sauria/RTL/src/sauria_core/psm/psm_shift_register.sv
+  - vendor/sauria/RTL/src/sauria_core/psm/psm_shift_fsm.sv
+  - vendor/sauria/RTL/src/sauria_core/psm/psm_top.sv
+  - vendor/sauria/RTL/src/sauria_core/sram/sram_top.sv
+  - vendor/sauria/RTL/src/sauria_core/sram/ram_inferred.sv
+  - vendor/sauria/RTL/src/sauria_core/sram/ram_intf_wrapper.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/sa_array.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/zero_det_neg.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/sa_processing_element.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/adder/adder_truah.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/adder/adder_trua.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/adder/adder_gear.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/adder/adder_ideal.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/adder/adder_generic.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/adder/adder_gear_2c.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/adder/adder_loa.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_booth.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/wallace_8.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_bam.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_ideal.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_log.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/lopd.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/wallace_4.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_wallace.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/wallace_16.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/mul_2x2.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/bam_cell.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/mul_8x8_signed_bw.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_generic.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/pulp_fma/fma_wrapper.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/pulp_fma/fpnew_fma_modified.sv
+  - vendor/sauria/RTL/src/sauria_core/sauria_logic.sv
+  - vendor/sauria/RTL/src/sauria_core/sauria_core.sv
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/FA.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/HA.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/lopd.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/mul_2x2.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/mul_8x8_signed_bw.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_bam.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_booth.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_generic.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_ideal.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_log.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/multiplier_wallace.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/wallace_4.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/wallace_8.sv 
+  - vendor/sauria/RTL/src/sauria_core/systolic_array/multiplier/wallace_16.sv
