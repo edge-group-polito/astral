@@ -689,10 +689,10 @@ for (genvar i=0; i<NumSyncRegSlv; i++ ) begin : gen_chs_ext_reg_cut
   ) i_chs_sync_ext_reg_cut (
     .clk_i     ( host_clk_i ),
     .rst_ni    ( host_pwr_on_rst_n ),
-    .src_req_i ( ext_reg_req ),
-    .src_rsp_o ( ext_reg_rsp ),
-    .dst_req_o ( ext_reg_req_cut ),
-    .dst_rsp_i ( ext_reg_rsp_cut )
+    .src_req_i ( ext_reg_req[i] ),
+    .src_rsp_o ( ext_reg_rsp[i] ),
+    .dst_req_o ( ext_reg_req_cut[i] ),
+    .dst_rsp_i ( ext_reg_rsp_cut[i] )
   );
 end
 
@@ -1542,6 +1542,114 @@ end else begin : gen_no_pulp_cluster
 
   assign car_regs_hw2reg.pulp_cluster_isolate_status.d = '0;
   assign car_regs_hw2reg.pulp_cluster_isolate_status.de = '0;
+end
+
+if (CarfieldIslandsCfg.sauria.enable) begin: gen_sauria
+
+  localparam int unsigned SauriaSyncIdx = CarfieldRegBusSlvIdx.sauria;
+  
+  assign slave_isolate_req[SauriaSlvIdx] = 1'b0;
+  assign slave_isolated[SauriaSlvIdx]    = slave_isolated_rsp[SauriaSlvIdx];
+
+
+    /* AXI lite interface */
+  AXI_LITE #(
+  .AXI_ADDR_WIDTH (Cfg.AddrWidth),
+  .AXI_DATA_WIDTH (Cfg.AxiDataWidth)
+  ) sauria_cfg_port_mst();
+
+  /* AXI interface */
+  AXI_BUS #(
+    .AXI_ADDR_WIDTH (Cfg.AddrWidth),
+    .AXI_DATA_WIDTH (Cfg.AxiDataWidth),
+    .AXI_ID_WIDTH   (AxiSlvIdWidth),
+    .AXI_USER_WIDTH (Cfg.AxiUserWidth) // Unused, but 0 can cause compilation errors
+  ) sauria_mem_port_mst();
+
+  /* AXI4 interface bridge module
+   * This module is necessary because SAURIA's core works with an AXI interface, while the Cheshire
+   * project is built using structures to handle the AXI protocol.
+   */
+  axi_intfc_bridge # (
+    .AxiAddrWidth             ( Cfg.AddrWidth           ),
+    .AxiDataWidth             ( Cfg.AxiDataWidth        ),
+    .AxiUserWidth             ( Cfg.AxiUserWidth        ),
+    .AxiInIdWidth             ( AxiSlvIdWidth           ),
+    .LogDepth                 ( LogDepth                ),
+    .CdcSyncStages            ( SyncStages              ),
+    // AXI type IN
+    .axi_in_resp_t            ( carfield_axi_slv_rsp_t     ),
+    .axi_in_req_t             ( carfield_axi_slv_req_t     ),
+    .axi_in_aw_chan_t         ( carfield_axi_slv_aw_chan_t ),
+    .axi_in_w_chan_t          ( carfield_axi_slv_w_chan_t  ),
+    .axi_in_b_chan_t          ( carfield_axi_slv_b_chan_t  ),
+    .axi_in_ar_chan_t         ( carfield_axi_slv_ar_chan_t ),
+    .axi_in_r_chan_t          ( carfield_axi_slv_r_chan_t  ),
+    //CDC AXI Slv parameters
+    .AsyncAxiInAwWidth        ( CarfieldAxiSlvAwWidth  ),
+    .AsyncAxiInWWidth         ( CarfieldAxiSlvWWidth   ),
+    .AsyncAxiInBWidth         ( CarfieldAxiSlvBWidth   ),
+    .AsyncAxiInArWidth        ( CarfieldAxiSlvArWidth  ),
+    .AsyncAxiInRWidth         ( CarfieldAxiSlvRWidth   )
+  ) axi_bridge_i (
+    .clk_i      (host_clk_i),
+    .pwr_on_rst_ni     (host_pwr_on_rst_n),
+
+    .async_axi_in_aw_data_i ( axi_slv_ext_aw_data [SauriaSlvIdx] ),
+    .async_axi_in_aw_wptr_i ( axi_slv_ext_aw_wptr [SauriaSlvIdx] ),
+    .async_axi_in_aw_rptr_o ( axi_slv_ext_aw_rptr [SauriaSlvIdx] ),
+    .async_axi_in_w_data_i  ( axi_slv_ext_w_data  [SauriaSlvIdx] ),
+    .async_axi_in_w_wptr_i  ( axi_slv_ext_w_wptr  [SauriaSlvIdx] ),
+    .async_axi_in_w_rptr_o  ( axi_slv_ext_w_rptr  [SauriaSlvIdx] ),
+    .async_axi_in_b_data_o  ( axi_slv_ext_b_data  [SauriaSlvIdx] ),
+    .async_axi_in_b_wptr_o  ( axi_slv_ext_b_wptr  [SauriaSlvIdx] ),
+    .async_axi_in_b_rptr_i  ( axi_slv_ext_b_rptr  [SauriaSlvIdx] ),
+    .async_axi_in_ar_data_i ( axi_slv_ext_ar_data [SauriaSlvIdx] ),
+    .async_axi_in_ar_wptr_i ( axi_slv_ext_ar_wptr [SauriaSlvIdx] ),
+    .async_axi_in_ar_rptr_o ( axi_slv_ext_ar_rptr [SauriaSlvIdx] ),
+    .async_axi_in_r_data_o  ( axi_slv_ext_r_data  [SauriaSlvIdx] ),
+    .async_axi_in_r_wptr_o  ( axi_slv_ext_r_wptr  [SauriaSlvIdx] ),
+    .async_axi_in_r_rptr_i  ( axi_slv_ext_r_rptr  [SauriaSlvIdx] ),
+
+    // interface-based side
+    .axi_o (sauria_mem_port_mst)
+  );
+  
+  /* AXI4 Lite interface bridge module
+   * Same idea as before, but for AXI4 Lite protocol. More complex module, as there isn't a direct
+   * correspondence between the interface-based of SAURIA and the register interface of Cheshire.
+   */
+  reg_to_axi_lite_intf #(
+  .ADDR_WIDTH(Cfg.AddrWidth),
+  .DATA_WIDTH(32), //Cfg.AxiDataWidth
+  .reg_req_t(reg_req_t), //.reg_req_t(reg_pkg::reg_req_t),
+  .reg_rsp_t(reg_rsp_t)  //.reg_rsp_t(reg_pkg::reg_rsp_t)
+  ) axi_lite_bridge_i (
+    .clk_i(host_clk_i),
+    .rst_ni(host_pwr_on_rst_n),
+    // struct side
+    .reg_req_i (ext_reg_req_cut[SauriaSyncIdx]),
+    .reg_rsp_o (ext_reg_rsp_cut[SauriaSyncIdx]),
+    // interface-based side
+    .axi_o (sauria_cfg_port_mst)
+  );
+
+  sauria_core #(
+      .CFG_AXI_DATA_WIDTH (32),//Cfg.AxiDataWidth
+      .CFG_AXI_ADDR_WIDTH (Cfg.AddrWidth),
+      .DATA_AXI_DATA_WIDTH (Cfg.AxiDataWidth),
+      .DATA_AXI_ADDR_WIDTH(Cfg.AddrWidth),
+      .DATA_AXI_ID_WIDTH (AxiSlvIdWidth)
+  ) sauria_core_i(
+      .i_clk      (host_clk_i),
+      .i_rstn     (host_pwr_on_rst_n),
+      
+      .cfg_slv    (sauria_cfg_port_mst),
+      .mem_slv    (sauria_mem_port_mst),
+      .o_doneintr (sauria_doneintr)
+  );
+
+end else begin: gen_no_pac_periph
 end
 
 // Floating Point Spatz Cluster
@@ -2812,4 +2920,5 @@ end else begin: gen_no_periph
   assign car_regs_hw2reg.periph_isolate_status.d = '0;
   assign car_regs_hw2reg.periph_isolate_status.de = '0;
 end
+
 endmodule

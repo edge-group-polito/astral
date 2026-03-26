@@ -46,6 +46,10 @@ localparam doub_bt SecurityIslandSize = 'h0;
 localparam bit     MailboxEnable = 1;
 localparam doub_bt MailboxBase = 'h40000000;
 localparam doub_bt MailboxSize = 'h00003000;
+// Sauria
+localparam bit     SauriaEnable = 1;
+localparam doub_bt SauriaBase = 'h52000000;
+localparam doub_bt SauriaSize = 'h00800000;
 /*********************
  * APB Configuration *
  ********************/
@@ -95,6 +99,10 @@ localparam doub_bt PcrsSize = 'h00001000;
 localparam bit     PllCfgEnable = 1;
 localparam doub_bt PllCfgBase = 'h21003000;
 localparam doub_bt PllCfgSize = 'h00001000;
+// Sauria
+localparam bit     SauriaCfgEnable = 1;
+localparam doub_bt SauriaCfgBase = 'h21004000;
+localparam doub_bt SauriaCfgSize = 'h00001000;
 /**************************
  * HyperBus Configuration *
  **************************/

@@ -46,6 +46,10 @@ localparam doub_bt SecurityIslandSize = 'h0;
 localparam bit     MailboxEnable = 1;
 localparam doub_bt MailboxBase = 'h40000000;
 localparam doub_bt MailboxSize = 'h00003000;
+// Sauria
+localparam bit     SauriaEnable = 1;
+localparam doub_bt SauriaBase = 'h40003000;
+localparam doub_bt SauriaSize = 'h00001000;
 /*********************
  * APB Configuration *
  ********************/

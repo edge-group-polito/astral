@@ -41,6 +41,7 @@ typedef struct packed {
   islands_properties_t pulp;
   islands_properties_t secured;
   islands_properties_t mbox;
+  islands_properties_t sauria;
 } islands_cfg_t;
 
 // Types are obtained from Cheshire package
@@ -62,6 +63,7 @@ typedef struct packed {
   byte_bt periph;
   byte_bt spatz;
   byte_bt pulp;
+  byte_bt sauria;
   byte_bt mbox;
 } carfield_slave_idx_t;
 
@@ -87,6 +89,7 @@ function automatic int unsigned gen_num_axi_slave(islands_cfg_t island_cfg);
   if (island_cfg.periph.enable  ) begin ret++; end
   if (island_cfg.spatz.enable   ) begin ret++; end
   if (island_cfg.pulp.enable    ) begin ret++; end
+  if (island_cfg.sauria.enable  ) begin ret++; end
   if (island_cfg.mbox.enable    ) begin ret++; end
   return ret;
 endfunction
@@ -110,6 +113,8 @@ function automatic carfield_slave_idx_t carfield_gen_axi_slave_idx(islands_cfg_t
   end else begin ret.spatz = MaxExtAxiSlv + j; j++; end
   if (island_cfg.pulp.enable) begin ret.pulp = i; i++;
   end else begin ret.pulp = MaxExtAxiSlv + j; j++; end
+  if (island_cfg.sauria.enable) begin ret.sauria = i; i++;
+  end else begin ret.sauria = MaxExtAxiSlv + j; j++; end
   if (island_cfg.mbox.enable) begin ret.mbox = i; i++;
   end else begin ret.mbox = MaxExtAxiSlv + j; j++; end
   return ret;
@@ -188,6 +193,12 @@ function automatic axi_struct_t carfield_gen_axi_map(int unsigned NumSlave  ,
     ret.AxiEnd[i] = island_cfg.pulp.base + island_cfg.pulp.size;
     if (i < NumSlave - 1) i++;
   end
+  if (island_cfg.sauria.enable) begin
+    ret.AxiIdx[i] = idx.sauria;
+    ret.AxiStart[i] = island_cfg.sauria.base;
+    ret.AxiEnd[i] = island_cfg.sauria.base + island_cfg.sauria.size;
+    if (i < NumSlave - 1) i++;
+  end
   if (island_cfg.mbox.enable) begin
     ret.AxiIdx[i] = idx.mbox;
     ret.AxiStart[i] = island_cfg.mbox.base;
@@ -206,14 +217,16 @@ typedef struct packed {
   islands_properties_t padframe;
   islands_properties_t l2ecc;
   islands_properties_t ethernet;
+  islands_properties_t sauria;
 } regbus_cfg_t;
 
 typedef struct packed {
   byte_bt pcrs;
   byte_bt pll;
   byte_bt padframe;
-  byte_bt ethernet;
   byte_bt l2ecc;
+  byte_bt ethernet;
+  byte_bt sauria;
 } carfield_regbus_slave_idx_t;
 
 // Generate the number of AXI slave devices to be connected to the
@@ -221,6 +234,7 @@ typedef struct packed {
 function automatic int unsigned gen_num_regbus_sync_slave(regbus_cfg_t regbus_cfg);
   int unsigned ret = 0; // Number of slaves starts from 0
   if (regbus_cfg.pcrs.enable) begin ret++; end
+  if (regbus_cfg.sauria.enable  ) begin ret++; end
   return ret;
 endfunction
 
@@ -238,7 +252,8 @@ localparam regbus_cfg_t CarfieldRegBusCfg = '{
   pll:      '{PllCfgEnable, PllCfgBase, PllCfgSize},
   padframe: '{PadframeCfgEnable, PadframeCfgBase, PadframeCfgSize},
   l2ecc:    '{L2EccCfgEnable, L2EccCfgBase, L2EccCfgSize},
-  ethernet: '{EthernetEnable, EthernetBase, EthernetSize}
+  ethernet: '{EthernetEnable, EthernetBase, EthernetSize},
+  sauria:   '{SauriaCfgEnable, SauriaCfgBase, SauriaCfgSize}
 };
 
 localparam int unsigned NumSyncRegSlv = gen_num_regbus_sync_slave(CarfieldRegBusCfg);
@@ -254,6 +269,8 @@ function automatic carfield_regbus_slave_idx_t carfield_gen_regbus_slave_idx(reg
   byte_bt j = 0;
   if (regbus_cfg.pcrs.enable) begin ret.pcrs = i; i++;
   end else begin ret.pcrs = NumTotalRegSlv + j; j++; end
+  if (regbus_cfg.sauria.enable) begin ret.sauria = i; i++;
+  end else begin ret.sauria = NumTotalRegSlv + j; j++; end
   if (regbus_cfg.pll.enable) begin ret.pll = i; i++;
   end else begin ret.pll = NumTotalRegSlv + j; j++; end
   if (regbus_cfg.padframe.enable) begin ret.padframe = i; i++;
@@ -281,6 +298,12 @@ function automatic regbus_struct_t carfield_gen_regbus_map(int unsigned NumSlave
     ret.RegBusIdx[i] = idx.pcrs;
     ret.RegBusStart[i] = regbus_cfg.pcrs.base;
     ret.RegBusEnd[i] = regbus_cfg.pcrs.base + regbus_cfg.pcrs.size;
+    if (i < NumSlave - 1) i++;
+  end
+  if (regbus_cfg.sauria.enable) begin
+    ret.RegBusIdx[i] = idx.sauria;
+    ret.RegBusStart[i] = regbus_cfg.sauria.base;
+    ret.RegBusEnd[i] = regbus_cfg.sauria.base + regbus_cfg.sauria.size;
     if (i < NumSlave - 1) i++;
   end
   if (regbus_cfg.pll.enable) begin
@@ -318,6 +341,7 @@ function automatic int unsigned gen_carfield_domains(islands_cfg_t island_cfg);
   if (island_cfg.periph.enable  ) begin ret++; end
   if (island_cfg.spatz.enable   ) begin ret++; end
   if (island_cfg.pulp.enable    ) begin ret++; end
+  if (island_cfg.sauria.enable  ) begin ret++; end
   if (island_cfg.secured.enable ) begin ret++; end
   return ret;
 endfunction
@@ -342,6 +366,7 @@ localparam islands_cfg_t CarfieldIslandsCfg = '{
   spatz:         '{SpatzClusterEnable, SpatzClusterBase, SpatzClusterSize},
   pulp:          '{PulpClusterEnable, PulpClusterBase, PulpClusterSize},
   secured:       '{SecurityIslandEnable, SecurityIslandBase, SecurityIslandSize},
+  sauria:        '{SauriaEnable, SauriaBase, SauriaSize},
   mbox:          '{MailboxEnable, MailboxBase, MailboxSize}
 };
 
@@ -383,6 +408,7 @@ typedef struct packed {
   byte_bt l2;
   byte_bt spatz;
   byte_bt pulp;
+  byte_bt sauria;
   byte_bt secured;
   byte_bt safed;
   byte_bt periph;
@@ -396,6 +422,7 @@ function automatic carfield_domain_idx_t gen_domain_idx(islands_cfg_t island_cfg
   if (island_cfg.safed.enable    ) begin ret.safed   = i; i++; end
   if (island_cfg.secured.enable  ) begin ret.secured = i; i++; end
   if (island_cfg.pulp.enable     ) begin ret.pulp    = i; i++; end
+  if (island_cfg.sauria.enable   ) begin ret.sauria  = i; i++; end
   if (island_cfg.spatz.enable    ) begin ret.spatz   = i; i++; end
   if (island_cfg.l2_port0.enable ) begin ret.l2      = i; i++; end
   return ret;
@@ -433,6 +460,7 @@ typedef enum byte_bt {
   PeriphsSlvIdx      = CarfieldAxiSlvIdx.periph,
   FPClusterSlvIdx    = CarfieldAxiSlvIdx.spatz,
   IntClusterSlvIdx   = CarfieldAxiSlvIdx.pulp,
+  SauriaSlvIdx       = CarfieldAxiSlvIdx.sauria,
   MailboxSlvIdx      = CarfieldAxiSlvIdx.mbox
 } axi_slv_idx_t;
 
@@ -442,6 +470,7 @@ typedef enum byte_bt {
   SecurityIslandiDMAMstIdx = CarfieldMstIdx.secured_idma,
   FPClusterMstIdx          = CarfieldMstIdx.spatz,
   IntClusterMstIdx         = CarfieldMstIdx.pulp,
+  // SauriaMstIdx             = CarfieldMstIdx.sauria,
   EthernetMstIdx           = CarfieldMstIdx.ethernet
 } axi_mst_idx_t;
 
@@ -764,7 +793,8 @@ typedef enum int {
   CanIdx           = 'd3,
   HyperBusIdx      = 'd4,
   StreamerIdx      = 'd5,
-  SpaceWireIdx     = 'd6
+  SpaceWireIdx     = 'd6 //,
+  // SauriaIdx        = 'd7
 } carfield_peripherals_e;
 
 // Address map of peripheral system

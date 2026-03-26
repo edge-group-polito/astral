@@ -7,6 +7,27 @@
 # Paul Scheffler <paulsc@iis.ee.ethz.ch>
 # Alessandro Ottaviano <aottaviano@iis.ee.ethz.ch>
 
+
+############
+#  Sauria  #
+############
+SAURIA_SW_DIR      := $(CAR_SW_DIR)/../hw/sauria/sw/lib
+SAURIA_SW_SRCS_C   := $(wildcard $(SAURIA_SW_DIR)/*.c $(SAURIA_SW_DIR)/**/*.c)
+SAURIA_SW_SRCS_S   := $(wildcard $(SAURIA_SW_DIR)/*.S $(SAURIA_SW_DIR)/**/*.S)
+SAURIA_SW_OBJS     := $(SAURIA_SW_SRCS_C:.c=.o) $(SAURIA_SW_SRCS_S:.S=.o)
+SAURIA_SW_LIB      := $(CAR_SW_DIR)/lib/libsauria.a
+
+# Compile SAURIA objects with the same flags/includes you use elsewhere
+$(SAURIA_SW_DIR)/%.o: $(SAURIA_SW_DIR)/%.c
+	$(CHS_SW_CC) $(CAR_SW_INCLUDES) $(CHS_SW_CCFLAGS) -c $< -o $@
+
+$(SAURIA_SW_DIR)/%.o: $(SAURIA_SW_DIR)/%.S
+	$(CHS_SW_CC) $(CAR_SW_INCLUDES) $(CHS_SW_CCFLAGS) -c $< -o $@
+
+$(SAURIA_SW_LIB): $(SAURIA_SW_OBJS)
+	$(CHS_SW_AR) $(CHS_SW_ARFLAGS) -rcsv $@ $^
+
+
 ############
 # Carfield #
 ############
@@ -19,18 +40,22 @@ isolde-sw-all: car-sw-libs car-sw-tests
 .PRECIOUS: %.elf %.dtb
 .PHONY: isolde-sw-all car-sw-libs car-sw-headers car-sw-tests
 
+CAR_SAURIA_BARE ?= -I$(CAR_SW_DIR)/../hw/sauria/sw/lib
+CAR_SAURIA_BASE_BARE ?= -I$(CAR_SW_DIR)/../hw/sauria/sw/lib/base
+
 # Libraries
 ifeq ($(shell echo $(PULPD_PRESENT)), 1)
 CAR_PULPD_BARE ?= -I$(CAR_SW_DIR)/tests/bare-metal/pulpd
 CAR_PULPD_SW_OFFLOAD_TESTS := car-pulpd-sw-offload-tests
 endif
 
-CAR_SW_INCLUDES    = -I$(CAR_SW_DIR)/include $(CAR_SAFED_BARE) $(CAR_PULPD_BARE) -I$(CHS_SW_DIR)/include $(CHS_SW_DEPS_INCS)
+CAR_SW_INCLUDES    = -I$(CAR_SW_DIR)/include $(CAR_SAFED_BARE) $(CAR_PULPD_BARE) $(CAR_SAURIA_BARE) $(CAR_SAURIA_BASE_BARE) -I$(CHS_SW_DIR)/include $(CHS_SW_DEPS_INCS)
 CAR_SW_LIB_SRCS_S  = $(wildcard $(CAR_SW_DIR)/lib/*.S $(CAR_SW_DIR)/lib/**/*.S)
 CAR_SW_LIB_SRCS_C  = $(wildcard $(CAR_SW_DIR)/lib/*.c $(CAR_SW_DIR)/lib/**/*.c)
 CAR_SW_LIB_SRCS_O  = $(CAR_SW_DEPS_SRCS:.c=.o) $(CAR_SW_LIB_SRCS_S:.S=.o) $(CAR_SW_LIB_SRCS_C:.c=.o)
 
 CAR_SW_LIBS = $(CAR_SW_DIR)/lib/libcarfield.a
+CAR_SW_LIBS += $(SAURIA_SW_LIB)
 
 $(CAR_SW_DIR)/lib/libcarfield.a: $(CAR_SW_LIB_SRCS_O)
 	$(CHS_SW_AR) $(CHS_SW_ARFLAGS) -rcsv $@ $^
@@ -50,12 +75,14 @@ carfield_%.dtb: carfield_%.dts
 %.car.o: %.S
 	$(CHS_SW_CC) $(CAR_SW_INCLUDES) $(CHS_SW_CCFLAGS) -c $< -o $@
 
+CAR_SW_LDLIBS += -lm
+
 define car_ld_elf_rule
 .PRECIOUS: %.car.$(1).elf
-
 %.car.$(1).elf: $$(CAR_LD_DIR)/$(1).ld %.car.o $(CHS_SW_LIBS) $$(CAR_SW_LIBS)
-	$$(CHS_SW_CC) $$(CAR_SW_INCLUDES) -T$$< $$(CAR_SW_LDFLAGS) -o $$@ $$(filter-out $$<,$$^)
+	$$(CHS_SW_CC) $$(CAR_SW_INCLUDES) -T$$< $$(CAR_SW_LDFLAGS) -o $$@ $$(filter-out $$<,$$^) $$(CAR_SW_LDLIBS)
 endef
+
 
 $(foreach link,$(patsubst $(CAR_LD_DIR)/%.ld,%,$(wildcard $(CAR_LD_DIR)/*.ld)),$(eval $(call car_ld_elf_rule,$(link))))
 
