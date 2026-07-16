@@ -79,12 +79,12 @@ CAR_SW_LDLIBS += -lm
 
 define car_ld_elf_rule
 .PRECIOUS: %.car.$(1).elf
-%.car.$(1).elf: $$(CAR_LD_DIR)/$(1).ld %.car.o $(CHS_SW_LIBS) $$(CAR_SW_LIBS)
+%.car.$(1).elf: $(2)/$(1).ld %.car.o $(CHS_SW_LIBS) $$(CAR_SW_LIBS)
 	$$(CHS_SW_CC) $$(CAR_SW_INCLUDES) -T$$< $$(CAR_SW_LDFLAGS) -o $$@ $$(filter-out $$<,$$^) $$(CAR_SW_LDLIBS)
 endef
 
-
-$(foreach link,$(patsubst $(CAR_LD_DIR)/%.ld,%,$(wildcard $(CAR_LD_DIR)/*.ld)),$(eval $(call car_ld_elf_rule,$(link))))
+$(foreach link,$(patsubst $(CHS_SW_LD_DIR)/%.ld,%,$(wildcard $(CHS_SW_LD_DIR)/*.ld)),$(eval $(call car_ld_elf_rule,$(link),$(CHS_SW_LD_DIR))))
+$(foreach link,$(patsubst $(CAR_LD_DIR)/%.ld,%,$(wildcard $(CAR_LD_DIR)/*.ld)),$(eval $(call car_ld_elf_rule,$(link),$(CAR_LD_DIR))))
 
 # Tests
 
@@ -106,7 +106,7 @@ CAR_SW_TEST_SPM_GPTH	= $(CAR_SW_TEST_SRCS_S:.S=.car.gpt.memh)  $(CAR_SW_TEST_SRC
 car-sw-tests: $(CAR_SW_TEST_DRAM_DUMP) $(CAR_SW_TEST_SPM_DUMP) $(CAR_SW_TEST_L2_DUMP) $(CAR_SW_TEST_DRAM_SLM) $(CAR_SW_TEST_SPM_ROMH) $(CAR_SW_TEST_SPM_GPTH) $(CAR_PULPD_SW_OFFLOAD_TESTS)
 
 # Generate .slm files from elf binaries. Only used when linking against external dram
-%.car.dram.slm: %.car.dram.elf
+%.car.dram.slm: %.car.dram.elf | venv
 	$(VENV)/python $(CAR_ROOT)/scripts/elf2slm.py --binary=$< --vectors=$*.car.hyperram
 
 # Generate ELFs for blocking offload from cheshire. We execute from L2 or dram.
