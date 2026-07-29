@@ -11,7 +11,7 @@
 ############
 #  Sauria  #
 ############
-SAURIA_SW_DIR      := $(CAR_SW_DIR)/../hw/sauria/sw/lib
+SAURIA_SW_DIR      := $(CAR_SW_DIR)/../hw/sauria/sw/drivers
 SAURIA_SW_SRCS_C   := $(wildcard $(SAURIA_SW_DIR)/*.c $(SAURIA_SW_DIR)/**/*.c)
 SAURIA_SW_SRCS_S   := $(wildcard $(SAURIA_SW_DIR)/*.S $(SAURIA_SW_DIR)/**/*.S)
 SAURIA_SW_OBJS     := $(SAURIA_SW_SRCS_C:.c=.o) $(SAURIA_SW_SRCS_S:.S=.o)
@@ -40,8 +40,8 @@ isolde-sw-all: car-sw-libs car-sw-tests
 .PRECIOUS: %.elf %.dtb
 .PHONY: isolde-sw-all car-sw-libs car-sw-headers car-sw-tests
 
-CAR_SAURIA_BARE ?= -I$(CAR_SW_DIR)/../hw/sauria/sw/lib
-CAR_SAURIA_BASE_BARE ?= -I$(CAR_SW_DIR)/../hw/sauria/sw/lib/base
+CAR_SAURIA_BARE ?= -I$(CAR_SW_DIR)/../hw/sauria/sw/drivers
+CAR_SAURIA_BASE_BARE ?= -I$(CAR_SW_DIR)/../hw/sauria/sw/drivers/base
 
 # Libraries
 ifeq ($(shell echo $(PULPD_PRESENT)), 1)
